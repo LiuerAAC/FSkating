@@ -1,0 +1,42 @@
+### Classification
+|_ Spin Type
+    |_ Camel Spin
+        |_ CF(Camel Forward)
+        |_ CS(Camel Sideways)
+        |_ CU(Camel Upright)
+    |_ Sit Spin
+        |_ SF(Sit Forward)
+        |_ SS(Sit Sideways)
+        |_ SB(Sit Behind)
+    |_ Upright Spin
+        |_ UF(Upright Forward)
+        |_ US(Upright Sideways/Stright)
+        |_ UB(Upright Biellmann)
+        |_ UL(Upright Layout)
+    |_ NBP(Non-Basic Position)
+        |_ NBP
+        |_ Other NBP
+    |_ In
+        |_ Jump in
+        |_ Step in
+        |_ Difficult in
+    |_ Out
+        |_ Jump out
+        |_ Step out
+        |_ Difficult out
+    |_ Change Position(Related to levels)
+        |_ Jump to Change Position(JCP)
+        |_ Change Position(CP, not jumping to change foot)
+    |_ Trans(during two positions, not related with levels)
+|_ Support Foot
+    |_ Right
+    |_ Left
+|_ Rotation
+    |_ Clockwise(CW)
+    |_ Counterclockwise(CCW)
+|_ Edge
+    |_ Outside
+    |_ Inside
+
+### Procedure
++ use ELAN to annotation
