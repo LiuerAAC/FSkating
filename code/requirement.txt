@@ -1,0 +1,8 @@
+torch
+torchvision
+pytorchvideo
+av
+tqdm
+
+
+# pip install -r requirements.txt
