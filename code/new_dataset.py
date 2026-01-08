@@ -1,45 +1,3 @@
-# import torch
-# from torch.utils.data import Dataset
-# from pytorchvideo.data.encoded_video import EncodedVideo
-# import torch.nn.functional as F
-# from pathlib import Path
-
-# class SpinClipDataset(Dataset):
-#     def __init__(self, samples, video_root, clip_len=32):
-#         self.samples = samples
-#         self.video_root = Path(video_root)
-#         self.clip_len = clip_len
-
-#         # 官方均值/方差，shape (C,1,1,1) 方便广播
-#         self.mean = torch.tensor([0.45, 0.45, 0.45]).view(3,1,1,1)
-#         self.std = torch.tensor([0.225, 0.225, 0.225]).view(3,1,1,1)
-
-#     def __len__(self):
-#         return len(self.samples)
-
-#     def __getitem__(self, idx):
-#         sample = self.samples[idx]
-#         video_path = self.video_root / f"{sample['video_id']}.mp4"
-
-#         # 读取视频帧
-#         video = EncodedVideo.from_path(str(video_path))
-#         video_tensor = video.get_clip(
-#             start_sec=sample['start_time'],
-#             end_sec=sample['end_time']
-#         )['video']  # (T,H,W,C)
-
-#         # 转成 (C,T,H,W)
-#         video_tensor = video_tensor.permute(3,0,1,2).float()
-#         print("video_tensor.shape before normalize:", video_tensor.shape)
-
-#         # 归一化
-#         mean = torch.tensor([0.45,0.45,0.45], dtype=torch.float32).view(3,1,1,1)
-#         std  = torch.tensor([0.225,0.225,0.225], dtype=torch.float32).view(3,1,1,1)
-#         video_tensor = (video_tensor - mean) / std
-
-#         label = torch.tensor(sample['label'], dtype=torch.long)
-#         return video_tensor, label
-
 import torch
 from torch.utils.data import Dataset
 from pytorchvideo.data.encoded_video import EncodedVideo
@@ -63,35 +21,71 @@ class SpinClipDataset(Dataset):
 
     def __len__(self):
         return len(self.samples)
-
+    
     def __getitem__(self, idx):
         sample = self.samples[idx]
+    #     video_path = sample['video_path']
         video_path = sample['video_path']
 
-        # 读取视频帧
+        # ===============================
+        # 1. 读取视频 clip
+        # ===============================
         video = EncodedVideo.from_path(str(video_path))
         clip_data = video.get_clip(
             start_sec=sample['start_time'],
             end_sec=sample['end_time']
-        )['video']  # (T,H,W,C)
+        )['video']  # 实际是 (C, T, H, W)
 
-        # 转成 (C,T,H,W)
-        video_tensor = clip_data.permute(3,0,1,2).float()  # (3,T,H,W)
+        # 转 float
+        video_tensor = clip_data.float()
 
-        # 插值到固定帧数 clip_len
-        if video_tensor.shape[1] != self.clip_len:
-            # video_tensor shape: (C,T,H,W)
+        # ===============================
+        # 2. 强制 shape 检查（非常重要）
+        # ===============================
+        assert video_tensor.dim() == 4, f"Unexpected dim: {video_tensor.shape}"
+        assert video_tensor.shape[0] == 3, f"Expected C=3, got {video_tensor.shape}"
+
+        # 当前 shape
+        # (C, T, H, W)
+        C, T, H, W = video_tensor.shape
+
+        # ===============================
+        # 3. 帧数插值到 clip_len
+        # ===============================
+        if T != self.clip_len:
             video_tensor = F.interpolate(
-                video_tensor.unsqueeze(0),  # (1,C,T,H,W)
-                size=(self.clip_len, video_tensor.shape[2], video_tensor.shape[3]),
-                mode='trilinear',
+                video_tensor.unsqueeze(0),   # (1, C, T, H, W)
+                size=(self.clip_len, H, W),
+                mode="trilinear",
                 align_corners=False
-            ).squeeze(0)  # (C,clip_len,H,W)
+            ).squeeze(0)                      # (C, clip_len, H, W)
 
-        # 归一化
-        video_tensor = (video_tensor - self.mean) / self.std
+        # 再次确认
+        assert video_tensor.shape[0] == 3, f"After T interp: {video_tensor.shape}"
+        assert video_tensor.shape[1] == self.clip_len
 
-        # 标签
-        label = torch.tensor(sample['label'], dtype=torch.long)
+        # ===============================
+        # 4. 空间分辨率 resize（非常关键）
+        # X3D 官方默认 224×224
+        # ===============================
+        video_tensor = F.interpolate(
+            video_tensor.unsqueeze(0),       # (1, C, T, H, W)
+            size=(self.clip_len, 224, 224),
+            mode="trilinear",
+            align_corners=False
+        ).squeeze(0)                          # (C, T, 224, 224)
+
+        # ===============================
+        # 5. 归一化（通道维是 dim=0）
+        # ===============================
+        mean = self.mean.to(video_tensor.device)
+        std  = self.std.to(video_tensor.device)
+
+        video_tensor = (video_tensor - mean) / std
+
+        # ===============================
+        # 6. 标签
+        # ===============================
+        label = torch.tensor(sample["label"], dtype=torch.long)
 
         return video_tensor, label
