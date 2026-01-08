@@ -1,181 +1,100 @@
-# import torch
-# import torch.nn as nn
-# from torch.utils.data import DataLoader
-# from torch.optim import AdamW
-# from tqdm import tqdm
-
-# from pytorchvideo.models.hub import x3d_s
-
-# # from data_processing import load_samples
-# from dataset import SpinClipDataset
-
-
-# def main():
-#     device = "cuda" if torch.cuda.is_available() else "cpu"
-#     print(f"[INFO] Using device: {device}")
-
-#     # 1. Load samples
-#     samples = torch.load("samples.pt")
-#     print(f"Loaded {len(samples)} samples")
-
-#     # 2. Dataset & Loader
-#     dataset = SpinClipDataset(
-#         samples=samples,
-#         video_root="Dataset/video",
-#         clip_len=32   # 可选，默认 32
-#     )
-
-#     loader = DataLoader(
-#         dataset,
-#         batch_size=4,
-#         shuffle=True,
-#         num_workers=4,
-#         pin_memory=True
-#     )
-
-#     # 3. Load X3D
-#     model = x3d_s(pretrained=True)
-
-#     num_classes = 6
-#     model.blocks[-1].proj = nn.Linear(
-#         model.blocks[-1].proj.in_features,
-#         num_classes
-#     )
-
-#     model = model.to(device)
-
-#     # 4. Optimizer & Loss
-#     optimizer = AdamW(model.parameters(), lr=1e-4)
-#     criterion = nn.CrossEntropyLoss()
-
-#     # 5. Training loop
-#     epochs = 20
-#     for epoch in range(epochs):
-#         model.train()
-#         total_loss = 0.0
-#         total_correct = 0
-#         total_samples = 0
-
-#         for video, label in tqdm(loader, desc=f"Epoch {epoch}"):
-#             video = video.to(device)
-#             label = label.to(device)
-
-#             out = model(video)
-#             loss = criterion(out, label)
-
-#             optimizer.zero_grad()
-#             loss.backward()
-#             optimizer.step()
-
-#             total_loss += loss.item()
-#             pred = out.argmax(dim=1)
-#             total_correct += (pred == label).sum().item()
-#             total_samples += label.size(0)
-
-#         avg_loss = total_loss / len(loader)
-#         acc = total_correct / total_samples
-
-#         print(f"[Epoch {epoch}] loss={avg_loss:.4f}, acc={acc:.4f}")
-
-#     # 6. Save model
-#     torch.save(model.state_dict(), "x3d_spin.pth")
-#     print("[INFO] Model saved to x3d_spin.pth")
-
-
-# if __name__ == "__main__":
-#     main()
-
+from pathlib import Path
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
-from torch.optim import AdamW
-from tqdm import tqdm
 
-from pytorchvideo.models.hub import x3d_s
-from dataset import SpinClipDataset  # 上面写好的 SpinClipDataset
+# =========================
+# 配置
+# =========================
+ANNOTATION_TXT = "0to34.txt"  # TXT 文件路径
+VIDEO_ROOT = Path("Dataset/video")  # 视频文件夹路径
+OUTPUT_SAMPLES = "samples.pt"       # 保存的样本列表
 
-def main():
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    print(f"[INFO] Using device: {device}")
+# =========================
+# Spin -> label 映射
+# =========================
+spin_label_map = {
+    # Camel Spin
+    "CF": 0, "CS": 0, "CU": 0,
+    # Sit Spin
+    "SF": 1, "SS": 1, "SB": 1,
+    # Upright Spin
+    "UF": 2, "US": 2, "UB": 2, "UL": 2,
+    # NBP
+    "Windmill": 3, "Other NBP": 4,
+    # In
+    "Jump In": 5, "Step In":5, "Difficult In": 5,
+    # Out
+    "Jump Out": 6, "Step Out": 6, "Difficult Out": 6,
+    # Change Position
+    "JCP": 7, "CP": 7,
+    # Trans（可选）
+    "Trans": 8
+}
 
-    # =====================
-    # 1. 加载样本
-    # =====================
-    samples = torch.load("samples.pt")
-    print(f"[INFO] Loaded {len(samples)} samples")
+# =========================
+# 解析 TXT -> samples
+# =========================
+def parse_txt_to_samples(txt_path, video_root):
+    samples = []
 
-    # =====================
-    # 2. Dataset & DataLoader
-    # =====================
-    dataset = SpinClipDataset(samples=samples, clip_len=32)
-    loader = DataLoader(
-        dataset,
-        batch_size=4,
-        shuffle=True,
-        num_workers=4,
-        pin_memory=True
-    )
+    with open(txt_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
 
-    # =====================
-    # 3. 加载 X3D 模型
-    # =====================
-    model = x3d_s(pretrained=True)
+    # 清理表头空格和 BOM
+    header = [h.strip().replace("\ufeff", "") for h in lines[0].strip().split("\t")]
+    print(f"Header columns: {header}")
 
-    num_classes = 6  # 根据你的 Spin 分类数量修改
-    model.blocks[-1].proj = nn.Linear(
-        model.blocks[-1].proj.in_features,
-        num_classes
-    )
+    for line in lines[1:]:
+        cols = line.strip().split("\t")
+        if len(cols) != len(header):
+            continue  # 跳过列数不对的行
+        row = dict(zip(header, [c.strip() for c in cols]))
 
-    model = model.to(device)
+        # 视频文件路径
+        video_file = row.get("File", "")
+        if not video_file:
+            continue
+        video_id = int(Path(video_file).stem)
+        video_path = video_root / f"{video_id}.mp4"
+        if not video_path.exists():
+            # print(f"Warning: video {video_path} not found. Skipping.")
+            continue
 
-    # =====================
-    # 4. 优化器 & 损失
-    # =====================
-    optimizer = AdamW(model.parameters(), lr=1e-4)
-    criterion = nn.CrossEntropyLoss()
+        # Spin -> label
+        spin = row.get("Spin", "")
+        if not spin:
+            continue
+        # 处理带 [] 的情况，如 "Jump In [a1]" -> "Jump In"
+        spin_clean = spin.split()[0] if "[" in spin else spin
+        label = spin_label_map.get(spin_clean, -1)
+        if label == -1:
+            continue  # 忽略无效 Spin
 
-    # =====================
-    # 5. 训练循环
-    # =====================
-    epochs = 20
-    for epoch in range(epochs):
-        model.train()
-        total_loss = 0.0
-        total_correct = 0
-        total_samples = 0
+        # 开始和结束时间（秒）
+        try:
+            start_time = float(row["Begin Time - ss.msec"])
+            end_time   = float(row["End Time - ss.msec"])
+        except ValueError:
+            # print(f"Warning: invalid time in line: {line}")
+            continue
 
-        for video, label in tqdm(loader, desc=f"Epoch {epoch}"):
-            # video shape: (B,C,T,H,W)
-            video = video.to(device)
-            label = label.to(device)
+        # 构建 sample
+        samples.append({
+            "video_id": video_id,
+            "video_path": str(video_path),
+            "start_time": start_time,   # ← 改这里
+            "end_time": end_time,       # ← 改这里
+            "label": label
+        })
 
-            # 前向
-            out = model(video)  # (B,num_classes)
+    print(f"Total valid samples: {len(samples)}")
+    return samples
 
-            # 损失
-            loss = criterion(out, label)
-
-            # 反向 + 优化
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            # 统计
-            total_loss += loss.item()
-            pred = out.argmax(dim=1)
-            total_correct += (pred == label).sum().item()
-            total_samples += label.size(0)
-
-        avg_loss = total_loss / len(loader)
-        acc = total_correct / total_samples
-        print(f"[Epoch {epoch}] loss={avg_loss:.4f}, acc={acc:.4f}")
-
-    # =====================
-    # 6. 保存模型
-    # =====================
-    torch.save(model.state_dict(), "x3d_spin.pth")
-    print("[INFO] Model saved to x3d_spin.pth")
-
+# =========================
+# 主函数
+# =========================
 if __name__ == "__main__":
-    main()
+    samples = parse_txt_to_samples(ANNOTATION_TXT, VIDEO_ROOT)
+
+    # 保存为 samples.pt
+    torch.save(samples, OUTPUT_SAMPLES)
+    print(f"Saved {len(samples)} samples to {OUTPUT_SAMPLES}")
