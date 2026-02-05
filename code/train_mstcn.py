@@ -18,8 +18,8 @@ ACTION_MAP = {
     "UF+Inside": 25, "SF+Inside": 26, "CF+Inside": 27, "CS+Inside": 28, "CU+Inside": 29, "BC+Inside": 30,
 }
 
-JSONL_PATH = Path("/Users/yuxuancao/Desktop/GraduateDesign/code/spins_with_buffer_clean.jsonl")
-FEAT_DIR = Path("/Users/yuxuancao/Desktop/GraduateDesign/code/features")
+JSONL_PATH = Path("GraduateDesign/code/spins_with_buffer_clean.jsonl")
+FEAT_DIR = Path("GraduateDesign/code/features")
 
 FEAT_DIM = 768        
 NUM_CLASSES = 30      
