@@ -13,15 +13,15 @@ FPS = 30
 # ---- 初始化 VideoMAE ----
 # 注意：MacBook 务必指定 device="cpu"
 videomae = VideoMAEWrapper(
-    ckpt_path="/Users/yuxuancao/Desktop/GraduateDesign/code/VideoMAE/checkpoints/videomae_vit_base_patch16_224.pth",
+    ckpt_path="GraduateDesign/code/VideoMAE/checkpoints/videomae_vit_base_patch16_224.pth",
     device="cpu"
 )
 
 # ---- 主函数 ----
 def main():
     # 路径配置
-    meta_path = Path("/Users/yuxuancao/Desktop/GraduateDesign/code/spins_with_buffer1.jsonl")
-    feat_dir = Path("/Users/yuxuancao/Desktop/GraduateDesign/code/features")
+    meta_path = Path("GraduateDesign/code/spins_with_buffer1.jsonl")
+    feat_dir = Path("GraduateDesign/code/features")
     
     # 确保输出文件夹存在
     feat_dir.mkdir(parents=True, exist_ok=True)
