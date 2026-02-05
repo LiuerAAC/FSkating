@@ -1,7 +1,9 @@
-# Figure Skating Spin Analysis & Video Feature Toolkit ⛸️
+## Figure Skating Spin Analysis & Video Feature Toolkit ⛸️
 
 ---
+
 A comprehensive toolkit for figure skating motion analysis, temporal action segmentation, and 3D pose-based view analysis, leveraging state-of-the-art models including VideoMAE, MS-TCN++, and custom pipelines for fine-grained skating jump and spin analysis.
+
 ---
 ## Features
 + Figure Skating Video Feature Extraction
