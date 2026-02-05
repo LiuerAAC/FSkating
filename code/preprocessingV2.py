@@ -90,9 +90,9 @@ def extract_spins(rows):
 
 def main():
     # --- 路径配置 (请确保与你的实际路径一致) ---
-    txt_path = Path("/Users/yuxuancao/Desktop/GraduateDesign/Dataset/0to34.txt")
-    out_path = Path("/Users/yuxuancao/Desktop/GraduateDesign/code/spins_with_buffer_clean.jsonl")
-    dataset_dir = Path("/Users/yuxuancao/Desktop/GraduateDesign/Dataset/video")
+    txt_path = Path("GraduateDesign/Dataset/0to34.txt")
+    out_path = Path("GraduateDesign/code/spins_with_buffer_clean.jsonl")
+    dataset_dir = Path("GraduateDesign/Dataset/video")
     
     by_file = parse_txt(txt_path)
     all_extracted = []
