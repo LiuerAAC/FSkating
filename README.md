@@ -6,18 +6,18 @@ A comprehensive toolkit for figure skating motion analysis, temporal action segm
 
 ---
 ## Features
-+ Figure Skating Video Feature Extraction
++ **Figure Skating Video Feature Extraction**
   + Extract spatiotemporal features from skating videos using VideoMAE/VideoMAE v2.
   + Segment-level representation for jumps, spins, and step sequences.
-+ Temporal Action Segmentation (TAS)
++ **Temporal Action Segmentation (TAS)**
   + Precisely segment skating routines into technical elements.
   + Support multi-class labeling for jumps, spins, and footwork sequences.
-+ 3D Pose & View Analysis
++ **3D Pose & View Analysis**
   + Triangulate 3D joint locations from multi-view recordings.
   + Automated view judgment for rotations along XYZ axes in jumps and spins.
-+ Data Processing & Statistical Utilities
++ **Data Processing & Statistical Utilities**
   + Parsing of JSON, EAF, and other annotation formats.
   + Bootstrapping, sampling, and statistical analysis for performance evaluation.
-+ Experimental Tools
++ **Experimental Tools**
   + Custom fitness functions for analyzing skating elements.
   + Mock pipelines for multi-view video augmentation and action assessment.
