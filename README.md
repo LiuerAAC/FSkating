@@ -1,6 +1,8 @@
 # SpinFS Dataset & Figure Skating Spin Grading System ⛸️
 
-![description](picture/sample.jpg)
+<p align="center">
+  <img src="picture/sample.jpg" width="600">
+</p>
 
 ## Overview
 SpinFS is a large-scale dataset and automated grading framework designed for fine-grained analysis of figure skating spin elements. The project aims to support research in temporal action segmentation, sports motion understanding, and rule-based technical evaluation in figure skating competitions.
@@ -69,7 +71,9 @@ SpinFS provides **two levels of semantic annotation**:
 
 This dual-layer annotation design supports both **temporal action segmentation research** and **fine-grained motion analysis tasks**.
 
-![description](picture/图片5.png)
+<p align="center">
+  <img src="picture/图片5.png" width="600">
+</p>
 
 ---
 
@@ -103,6 +107,23 @@ Rule-Based Spin Level Evaluation
 The video above demonstrates the automatic detection and grading of spin elements in a competition program.
 
 The system identifies spin segments, estimates rotation counts, and produces technical labels consistent with judging standards.
+
+---
+
+## Performance
+
+We evaluate the effectiveness of the proposed framework on the SpinFS test set. The evaluation measures two criteria:
+
+- **Acc (Naming)**: accuracy of correctly identifying the spin element name  
+- **Acc (Naming + Level)**: accuracy of correctly identifying both the element name and its difficulty level
+
+| Test Setting | Acc (Naming) | Acc (Naming + Level) |
+|---------------|-------------|----------------------|
+| Ground Truth Segmentation | 94.08% | 88.49% |
+| Only Stage-2 Segmentation | 85.71% | 80.95% |
+| Two-Stage Segmentation | 67.06% | 55.16% |
+
+The results show that accurate temporal segmentation plays a critical role in the overall grading performance. When ground truth action boundaries are provided, the grading framework achieves strong accuracy. When relying on automatic segmentation, performance decreases due to boundary localization errors, highlighting the importance of precise temporal modeling in long skating programs.
 
 ---
 
