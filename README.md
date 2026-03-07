@@ -1,8 +1,6 @@
 # SpinFS Dataset & Figure Skating Spin Grading System ⛸️
 
-<p align="center">
-  <video src="picture/sample.jpg" controls width="720"></video>
-</p>
+![description](picture/sample.jpg)
 
 ## Overview
 SpinFS is a large-scale dataset and automated grading framework designed for fine-grained analysis of figure skating spin elements. The project aims to support research in temporal action segmentation, sports motion understanding, and rule-based technical evaluation in figure skating competitions.
@@ -71,9 +69,8 @@ SpinFS provides **two levels of semantic annotation**:
 
 This dual-layer annotation design supports both **temporal action segmentation research** and **fine-grained motion analysis tasks**.
 
-<p align="center">
-  <video src="picture/图片5.jpg" controls width="720"></video>
-</p>
+![description](picture/图片5.png)
+
 ---
 
 ## Pipeline
