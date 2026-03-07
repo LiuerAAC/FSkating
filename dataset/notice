@@ -1,4 +1,9 @@
 ### Classification
+|_ First Level
+    |_ Background
+    |_ Jump
+    |_ Sequence
+    |_ Spin
 |_ Spin Type
     |_ Camel Spin
         |_ CF(Camel Forward)
