@@ -1,7 +1,7 @@
 # SpinFS Dataset & Figure Skating Spin Grading System ⛸️
 
 <p align="center">
-  <video src="results/sample_result.mp4" controls width="720"></video>
+  <video src="picture/sample.jpg" controls width="720"></video>
 </p>
 
 ## Overview
@@ -71,6 +71,9 @@ SpinFS provides **two levels of semantic annotation**:
 
 This dual-layer annotation design supports both **temporal action segmentation research** and **fine-grained motion analysis tasks**.
 
+<p align="center">
+  <video src="picture/图片5.jpg" controls width="720"></video>
+</p>
 ---
 
 ## Pipeline
